@@ -23,6 +23,8 @@ rating = pd.read_csv('tourism_rating.csv')
 place = pd.read_csv('tourism_with_id.csv')
 user = pd.read_csv('user.csv')
 
+
+
 """## 3.2 Data Features Exploration"""
 
 # Looking into data place 
@@ -157,24 +159,8 @@ df = rating.copy()
 """## 7.2. User Example Preparation to Show Recommendations"""
 
 # user sampling randomly
-user_id = df.User_Id.sample(1).iloc[0]
-place_visited_by_user = df[df.User_Id == user_id]
-
-# unvisited location data
-place_not_visited = place_df[~place_df['id'].isin(place_visited_by_user.Place_Id.values)]['id'] 
-place_not_visited = list(
-    set(place_not_visited)
-    .intersection(set(place_to_place_encoded.keys()))
-)
- 
-place_not_visited = [[place_to_place_encoded.get(x)] for x in place_not_visited]
-user_encoder = user_to_user_encoded.get(user_id)
-user_place_array = np.hstack(
-    ([[user_encoder]] * len(place_not_visited), place_not_visited)
-)
-
-
-
+# user_id = request.args.get('user_id')
+# user_id = int(user_id)
 
 
 
@@ -184,7 +170,29 @@ model = tf.keras.models.load_model('output')
 
 @app.route('/recommend', methods=['POST'])
 def rekomen():
+
+    # user_id = df.User_Id.sample(1).iloc[0]
+    req = request.get_json()
+    user_id = req['user_id']
+
+    place_visited_by_user = df[df.User_Id == user_id]
+
+    # unvisited location data
+    place_not_visited = place_df[~place_df['id'].isin(place_visited_by_user.Place_Id.values)]['id'] 
+    place_not_visited = list(
+        set(place_not_visited)
+        .intersection(set(place_to_place_encoded.keys()))
+    )
+    
+    place_not_visited = [[place_to_place_encoded.get(x)] for x in place_not_visited]
+    user_encoder = user_to_user_encoded.get(user_id)
+    user_place_array = np.hstack(
+        ([[user_encoder]] * len(place_not_visited), place_not_visited)
+    )
+
     # top 7 recommendations
+    print(user_place_array)
+    
     inputs = tf.cast(user_place_array, tf.int64)
 
     ratings = model.predict(inputs).flatten()
