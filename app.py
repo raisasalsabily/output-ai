@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect, url_for, Response, render_template, flash, jsonify
+from flask_cors import CORS
 import pickle
 import pandas as pd
 import tensorflow as tf
@@ -6,7 +7,8 @@ import json
 
 app = Flask(__name__, template_folder='templates')
 
-
+CORS(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 import numpy as np # linear algebra
 
